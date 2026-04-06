@@ -25,12 +25,10 @@
 
   .main{display:flex;flex:1;overflow:hidden;height:calc(100vh - 57px);}
 
-  /* 사이드바 */
   .sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
   .sb-sec{padding:13px;border-bottom:1px solid var(--border);}
   .sb-lbl{font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:9px;}
 
-  /* API 키 설정 */
   .key-wrap{display:flex;flex-direction:column;gap:6px;}
   .key-wrap input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 9px;font-size:11px;width:100%;font-family:monospace;}
   .key-wrap input:focus{outline:none;border-color:var(--accent);}
@@ -49,7 +47,6 @@
   .chip-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:var(--bg);}
   .chip-st{margin-left:auto;font-size:10px;}
 
-  /* 중앙 */
   .center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
   .input-area{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);}
   .input-area h2{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:7px;}
@@ -75,7 +72,6 @@
   .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:14px 18px;flex-direction:column;gap:12px;}
   .tab-panel.active{display:flex;}
 
-  /* 진행 로그 */
   .log-line{font-family:monospace;font-size:12px;line-height:1.9;padding:1px 0;border-bottom:1px solid rgba(46,51,80,.3);}
   .log-line.info{color:var(--text2);}
   .log-line.start{color:var(--accent);}
@@ -84,7 +80,6 @@
   .log-line.final{color:var(--gold);font-weight:700;}
   .log-time{color:var(--text3);margin-right:8px;}
 
-  /* 에이전트 카드 */
   .agent-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden;animation:sIn .2s ease;}
   @keyframes sIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
   .card-hdr{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--surface2);cursor:pointer;user-select:none;}
@@ -100,7 +95,6 @@
   .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* 최종 회의록 */
   .minutes-card{background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;overflow:hidden;animation:sIn .2s ease;}
   .minutes-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:rgba(201,168,76,.07);}
   .minutes-hdr-left{display:flex;align-items:center;gap:8px;}
@@ -112,7 +106,6 @@
   .dl-btn:hover{opacity:.8;}
   .minutes-body{padding:16px;font-size:12.5px;line-height:1.95;color:var(--text2);white-space:pre-wrap;word-break:break-word;border-top:1px solid rgba(201,168,76,.2);}
 
-  /* 우측 */
   .right-panel{width:190px;min-width:190px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
   .rp-sec{padding:12px;border-bottom:1px solid var(--border);}
   .rp-lbl{font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
@@ -125,7 +118,6 @@
   .empty-ico{font-size:34px;opacity:.2;}
   .empty p{font-size:12.5px;}
 
-  /* 최초 설정 모달 */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;}
   .modal-overlay.hidden{display:none;}
   .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:380px;max-width:90vw;}
@@ -147,7 +139,6 @@
 </head>
 <body>
 
-<!-- 최초 API 키 입력 모달 -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h2>이연희 의원실 전문가 그룹</h2>
@@ -167,7 +158,6 @@
 </header>
 
 <div class="main">
-  <!-- 사이드바 -->
   <div class="sidebar">
     <div class="sb-sec">
       <div class="sb-lbl">Gemini API 키</div>
@@ -186,7 +176,6 @@
     </div>
   </div>
 
-  <!-- 중앙 -->
   <div class="center">
     <div class="input-area">
       <h2>현안 / 법안 입력</h2>
@@ -218,7 +207,6 @@
     </div>
   </div>
 
-  <!-- 우측 패널 -->
   <div class="right-panel">
     <div class="rp-sec">
       <div class="rp-lbl">실행 현황</div>
@@ -239,7 +227,7 @@
     </div>
     <div class="rp-sec">
       <div class="rp-lbl">안내</div>
-      <p style="font-size:10.5px;color:var(--text3);line-height:1.7;">Claude 에이전트: 내장 API<br><br>Gemini 에이전트: Flash 2.0 무료<br><br>키는 이 브라우저에 저장됩니다</p>
+      <p style="font-size:10.5px;color:var(--text3);line-height:1.7;">전원 Gemini Flash 2.0 무료<br><br>⏱️ 매 호출 간 60초 대기<br><br>키는 이 브라우저에 저장됩니다</p>
     </div>
   </div>
 </div>
@@ -248,19 +236,19 @@
 const STORAGE_KEY = 'gemini_api_key_leeyh';
 
 const AGENTS=[
-  {id:'pm',name:'프로젝트 매니저',icon:'🗂️',model:'claude',group:['all','quick','legal','policy'],
+  {id:'pm',name:'프로젝트 매니저',icon:'🗂️',model:'gemini',group:['all','quick','legal','policy'],
    prompt:`당신은 "프로젝트 매니저" 역할의 에이전트입니다. 목표를 일정과 과업으로 분해하고, 우선순위·담당자·산출물·마감기한을 관리해 프로젝트가 실제로 굴러가게 만드는 실행 관리형 에이전트입니다. 사실·해석·의견·추정을 구분하고, 결론부터 제시 후 근거, 불확실성·쟁점을 숨기지 말 것. 출력: 핵심 판단 / 근거 / 쟁점 / 에이전트들에게 던질 질문 / 결론 반영 문장 / 후속 실행 과제(담당·마감)`},
   {id:'news',name:'뉴스리서처',icon:'📰',model:'gemini',group:['all','quick','policy'],
    prompt:`당신은 "뉴스리서처" 역할의 에이전트입니다. 기사·보도·발언·통계 흐름을 수집·정리하고 사실관계와 맥락을 검토하는 정보 조사 에이전트입니다. 사실과 해석을 구분, 출처 불분명 주장과 확인된 사실을 섞지 말 것. 출력: 핵심 판단 / 최신 보도 요약 / 언론별 프레임 차이 / 확인 필요사항 / 결론 반영 문장`},
   {id:'social',name:'사회 연구가',icon:'🔬',model:'gemini',group:['all','policy'],
    prompt:`당신은 "사회 연구가" 역할의 에이전트입니다. 사회 현상, 여론, 불평등, 노동, 인구, 세대 문제를 구조적으로 분석하고 정책 함의를 도출하는 연구형 에이전트입니다. 현상→원인→영향→대안 구조. 출력: 핵심 판단 / 구조적 원인 / 사회적 파급효과 / 쟁점 / 결론 반영 문장`},
-  {id:'constitution',name:'헌법 학자',icon:'⚖️',model:'claude',group:['all','quick','legal'],
+  {id:'constitution',name:'헌법 학자',icon:'⚖️',model:'gemini',group:['all','quick','legal'],
    prompt:`당신은 "헌법 학자" 역할의 에이전트입니다. 헌법 원리, 기본권, 권력분립, 법치주의 관점에서 법안과 정책을 분석하는 헌법 해석 중심 에이전트입니다. 정치적 선호를 헌법 논리처럼 포장 금지. 명문 규정·판례·학설 구분. 출력: 핵심 판단 / 관련 헌법 원칙 / 위헌성 검토 / 기본권 충돌 분석 / 결론 반영 문장`},
   {id:'legis',name:'입법 조사관',icon:'📋',model:'gemini',group:['all','quick','legal'],
    prompt:`당신은 "입법 조사관" 역할의 에이전트입니다. 법률안·제도·선례를 조사·검토하여 입법 필요성, 문제점, 대안, 수정 방향을 정리하는 입법 실무형 에이전트입니다. 문제의식→현행 제도→개정 필요성→쟁점→대안 순서. 출력: 핵심 판단 / 현행 제도 현황 / 입법 쟁점 / 수정 방향 / 결론 반영 문장`},
-  {id:'lawyer',name:'법률가',icon:'🏛️',model:'claude',group:['all','quick','legal'],
+  {id:'lawyer',name:'법률가',icon:'🏛️',model:'gemini',group:['all','quick','legal'],
    prompt:`당신은 "법률가" 역할의 에이전트입니다. 법률 문장, 제도, 규제, 책임 관계를 법률적으로 검토하고 위험 요소와 대응 논리를 정리하는 실무형 법률 에이전트입니다. 단정적 판단 남발 금지. 사실관계 부족 시 가정·전제 명시. 출력: 핵심 판단 / 법적 근거 / 위법성·책임 분석 / 소송 리스크 / 결론 반영 문장`},
-  {id:'policy',name:'민주당 정책 전문가',icon:'🗳️',model:'claude',group:['all','quick','policy'],
+  {id:'policy',name:'민주당 정책 전문가',icon:'🗳️',model:'gemini',group:['all','quick','policy'],
    prompt:`당신은 "민주당 정책 전문가" 역할의 에이전트입니다. 민주당의 가치와 노선을 바탕으로 정책 설명자료, 발언문, 반박 논리를 작성하는 정책 전문 에이전트입니다. 사실과 입장을 구분. 비판 대상 주장도 왜곡 없이 요약 후 반박. 출력: 핵심 판단 / 정책 목표·효과 / 예상 반론 및 재반박 / 결론 반영 문장`},
   {id:'creative',name:'창의력 대장',icon:'🎨',model:'gemini',group:['all','policy'],
    prompt:`당신은 "창의력 대장" 역할의 에이전트입니다. 복잡한 메시지를 쉽고 인상적으로 바꾸고, 슬로건·비유·콘셉트를 창의적으로 만드는 아이디어형 에이전트입니다. 사실관계를 해치는 과장 금지. 출력: 핵심 판단 / 메시지 제안 3종(강한·무난·감성형) / 표현 전략 / 결론 반영 문장`},
@@ -268,11 +256,11 @@ const AGENTS=[
    prompt:`당신은 "비평가" 역할의 에이전트입니다. 주장·정책·법안의 허점과 약점을 찾아내고 견고한 논리로 다듬게 돕는 검증형 에이전트입니다. 인신공격이 아닌 논리 검증 집중. 출력: 핵심 판단 / 강점 / 약점·허점 / 가장 아픈 예상 반론 / 보완 제안 / 결론 반영 문장`},
   {id:'fact',name:'팩트체커',icon:'✅',model:'gemini',group:['all','quick'],
    prompt:`당신은 "팩트체커" 역할의 에이전트입니다. 주장·발언·통계·법률 인용이 사실에 부합하는지 검증하고 확인된 사실과 불확실한 부분을 구분합니다. 판정: 사실/대체로 사실/절반만 사실/사실 아님/판단 유보. 출력: 핵심 판단 / 검증 대상 목록 / 판정 및 근거 / 추가 확인 필요사항 / 결론 반영 문장`},
-  {id:'aide',name:'보좌관',icon:'📎',model:'claude',group:['all','quick','legal','policy'],
+  {id:'aide',name:'보좌관',icon:'📎',model:'gemini',group:['all','quick','legal','policy'],
    prompt:`당신은 "보좌관" 역할의 에이전트입니다. 의원실 실무 관점에서 질의서, 브리핑, 메시지, 현안 보고를 빠르게 정리하는 국회·정무형 에이전트입니다. 길게 늘어놓지 말고 바로 쓸 수 있게. 출력: 핵심 판단 / 실무 활용 메시지 / 보고용 1줄 요약 / 예상 Q&A / 결론 반영 문장`},
   {id:'humanities',name:'인문학자',icon:'📚',model:'gemini',group:['all'],
    prompt:`당신은 "인문학자" 역할의 에이전트입니다. 역사·철학·문화 관점에서 현상의 의미를 해석하고 가치·맥락·서사를 풍부하게 만드는 사유형 에이전트입니다. 추상적 수사만 많고 실질이 빈 문장 금지. 출력: 핵심 판단 / 역사·철학적 맥락 / 가치 해석 / 서사 제안 / 결론 반영 문장`},
-  {id:'secretary',name:'서기',icon:'📝',model:'claude',group:['all','quick','legal','policy'],
+  {id:'secretary',name:'서기',icon:'📝',model:'gemini',group:['all','quick','legal','policy'],
    prompt:`당신은 "서기" 역할의 에이전트입니다. 모든 논의를 기록하고 회의록 형태로 정리하는 기록형 에이전트입니다. 아래 형식으로 최종 회의록을 작성하세요:
 
 # 이연희 의원실 전문가 그룹 회의록
@@ -300,7 +288,8 @@ const AGENTS=[
 
 let gKey='', running=false, results={}, t0=null, timer=null, calls=0;
 
-// ===== 초기화 — localStorage에서 키 불러오기 =====
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
 function init(){
   document.getElementById('agentList').innerHTML = AGENTS.map(a=>`
     <div class="agent-chip" id="chip_${a.id}" onclick="goResult('${a.id}')">
@@ -389,6 +378,7 @@ function addLog(msg, type='info'){
   area.scrollTop = area.scrollHeight;
 }
 
+
 async function run(){
   const task = document.getElementById('taskInput').value.trim();
   if(!task) return toast('현안을 입력하세요.');
@@ -412,22 +402,34 @@ async function run(){
   switchTab('log');
 
   const modeName = document.getElementById('modeSelect').selectedOptions[0].text;
-  addLog(`▶ 전문가 그룹 가동 — ${modeName}`, 'start');
+  addLog(`▶ 전문가 그룹 가동 — ${modeName} (All Gemini)`, 'start');
   addLog(`📌 현안: ${task.slice(0,70)}${task.length>70?'…':''}`, 'info');
-  addLog(`👥 참여 에이전트: ${agents.length}명`, 'info');
+  addLog(`👥 참여 에이전트: ${agents.length}명 (전원 Gemini)`, 'info');
+  addLog('⏱️ 각 호출 간 60초 대기가 적용됩니다.', 'info');
   addLog('', 'info');
 
   const mainAgents = agents.filter(a => a.id !== 'secretary');
   const sec = agents.find(a => a.id === 'secretary');
 
-  // 결과 패널 초기화 + 카드 생성
   document.getElementById('panel-results').innerHTML = '';
   mainAgents.forEach(a => { mkCard(a); setChip(a.id,'running'); });
 
   let done=0;
+  let lastCallTime=0;
   for(const a of mainAgents){
     setProgress(done / agents.length * 88);
-    addLog(`⟳ [${a.name}] 분석 시작 (${a.model==='claude'?'Claude':'Gemini'})...`, 'start');
+
+    // 매 호출 간 최소 60초 대기
+    if(lastCallTime > 0){
+      const elapsed = Date.now() - lastCallTime;
+      const wait = 60000 - elapsed;
+      if(wait > 0){
+        addLog(`⏳ 속도 제한 대기 중... ${Math.ceil(wait/1000)}초`, 'info');
+        await sleep(wait);
+      }
+    }
+
+    addLog(`⟳ [${a.name}] 분석 시작 (Gemini)...`, 'start');
     try{
       const r = await callAgent(a, task);
       results[a.id] = r;
@@ -440,15 +442,26 @@ async function run(){
       setChip(a.id, 'error');
       addLog(`✗ [${a.name}] 오류: ${e.message}`, 'error');
     }
+    lastCallTime = Date.now();
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
   }
 
-  // 서기
   if(sec){
     setProgress(92);
     addLog('', 'info');
+
+    // 서기도 Gemini이므로 대기
+    if(lastCallTime > 0){
+      const elapsed = Date.now() - lastCallTime;
+      const wait = 60000 - elapsed;
+      if(wait > 0){
+        addLog(`⏳ 속도 제한 대기 중... ${Math.ceil(wait/1000)}초`, 'info');
+        await sleep(wait);
+      }
+    }
+
     addLog('📝 서기가 최종 회의록 작성 중...', 'final');
     setChip('secretary', 'running');
     const combined = mainAgents.map(a=>`[${a.name}]\n${results[a.id]||'(없음)'}`).join('\n\n---\n\n');
@@ -479,18 +492,10 @@ async function run(){
   toast('✅ 완료 — 회의록 탭을 확인하세요');
 }
 
+
 async function callAgent(a, task){
   calls++;
-  return a.model==='claude' ? await callClaude(a,task) : await callGemini(a,task);
-}
-async function callClaude(a, task){
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:a.prompt,messages:[{role:'user',content:`현안:\n${task}`}]})
-  });
-  const d = await res.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.content?.map(c=>c.text||'').join('')||'';
+  return await callGemini(a,task);
 }
 async function callGemini(a, task){
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${gKey}`;
@@ -502,6 +507,7 @@ async function callGemini(a, task){
   if(d.error) throw new Error(d.error.message);
   return d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
 }
+
 
 function mkCard(a){
   const p = document.getElementById('panel-results');
@@ -534,7 +540,6 @@ function renderMinutes(text){
     target.appendChild(mc);
   };
   mkCard(document.getElementById('panel-minutes'));
-  // 결과 탭에도 추가
   const rp = document.getElementById('panel-results');
   const rc = document.createElement('div');
   rc.className='minutes-card';
@@ -608,6 +613,7 @@ function toast(msg){
 }
 
 init();
+
 </script>
 </body>
 </html>
