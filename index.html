@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이연희 의원실 전문가 그룹 by Sun</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3350;
+    --accent:#4f7cff; --accent2:#7c4fff; --gold:#c9a84c;
+    --text:#e8eaf6; --text2:#8b92b8; --text3:#555e8a;
+    --success:#4caf7c; --warn:#ff9f4c; --danger:#ff4c6a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .logo{display:flex;flex-direction:column;gap:2px;}
+  .logo-main{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;color:var(--gold);letter-spacing:-.3px;}
+  .logo-sub{font-size:10.5px;color:var(--text3);letter-spacing:.5px;}
+  .api-status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text3);}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  .main{display:flex;flex:1;overflow:hidden;height:calc(100vh - 57px);}
+
+  /* 사이드바 */
+  .sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+  .sb-sec{padding:13px;border-bottom:1px solid var(--border);}
+  .sb-lbl{font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:9px;}
+
+  /* API 키 설정 */
+  .key-wrap{display:flex;flex-direction:column;gap:6px;}
+  .key-wrap input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 9px;font-size:11px;width:100%;font-family:monospace;}
+  .key-wrap input:focus{outline:none;border-color:var(--accent);}
+  .key-row{display:flex;gap:5px;}
+  .key-btn{flex:1;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px;font-size:11.5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+  .key-btn:hover{opacity:.85;}
+  .key-btn.del{background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+  .key-btn.del:hover{color:var(--danger);}
+  .key-saved-msg{font-size:10px;color:var(--success);text-align:center;}
+
+  .agent-chip{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:6px;margin-bottom:2px;cursor:pointer;transition:background .15s;font-size:11.5px;color:var(--text2);}
+  .agent-chip:hover{background:var(--surface2);color:var(--text);}
+  .agent-chip.running{color:var(--accent);}
+  .agent-chip.done{color:var(--success);}
+  .agent-chip.error{color:var(--danger);}
+  .chip-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:var(--bg);}
+  .chip-st{margin-left:auto;font-size:10px;}
+
+  /* 중앙 */
+  .center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .input-area{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .input-area h2{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:7px;}
+  .input-area textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:11px;font-size:13px;line-height:1.7;font-family:'Noto Sans KR',sans-serif;resize:vertical;min-height:100px;}
+  .input-area textarea:focus{outline:none;border-color:var(--accent);}
+  .input-area textarea::placeholder{color:var(--text3);}
+  .input-controls{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .mode-sel{background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:7px 9px;font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
+  .run-btn{margin-left:auto;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:opacity .2s,transform .1s;}
+  .run-btn:hover{opacity:.9;transform:translateY(-1px);}
+  .run-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+  .prog-wrap{height:3px;background:var(--border);display:none;}
+  .prog-wrap.on{display:block;}
+  .prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .4s ease;}
+
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);}
+  .tab{padding:9px 16px;font-size:12px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:color .15s;white-space:nowrap;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab:hover:not(.active){color:var(--text2);}
+
+  .output-wrap{flex:1;overflow:hidden;position:relative;}
+  .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:14px 18px;flex-direction:column;gap:12px;}
+  .tab-panel.active{display:flex;}
+
+  /* 진행 로그 */
+  .log-line{font-family:monospace;font-size:12px;line-height:1.9;padding:1px 0;border-bottom:1px solid rgba(46,51,80,.3);}
+  .log-line.info{color:var(--text2);}
+  .log-line.start{color:var(--accent);}
+  .log-line.done{color:var(--success);}
+  .log-line.error{color:var(--danger);}
+  .log-line.final{color:var(--gold);font-weight:700;}
+  .log-time{color:var(--text3);margin-right:8px;}
+
+  /* 에이전트 카드 */
+  .agent-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden;animation:sIn .2s ease;}
+  @keyframes sIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .card-hdr{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--surface2);cursor:pointer;user-select:none;}
+  .card-hdr:hover{background:#272b40;}
+  .card-ico{font-size:15px;}
+  .card-ttl{font-size:12.5px;font-weight:500;flex:1;}
+  .card-mdl{font-size:10px;color:var(--text3);background:var(--bg);padding:2px 6px;border-radius:3px;}
+  .card-tog{color:var(--text3);font-size:11px;transition:transform .2s;}
+  .agent-card.collapsed .card-tog{transform:rotate(-90deg);}
+  .card-body{padding:13px;font-size:12.5px;line-height:1.85;color:var(--text2);white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--border);}
+  .agent-card.collapsed .card-body{display:none;}
+  .agent-card.loading .card-body{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px;}
+  .spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* 최종 회의록 */
+  .minutes-card{background:var(--surface);border:1.5px solid var(--gold);border-radius:10px;overflow:hidden;animation:sIn .2s ease;}
+  .minutes-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:rgba(201,168,76,.07);}
+  .minutes-hdr-left{display:flex;align-items:center;gap:8px;}
+  .minutes-hdr h3{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--gold);}
+  .dl-group{display:flex;gap:6px;}
+  .dl-btn{border:none;border-radius:6px;padding:6px 12px;font-size:11.5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:opacity .15s;white-space:nowrap;}
+  .dl-btn.primary{background:var(--gold);color:#1a1500;font-weight:700;}
+  .dl-btn.sec{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+  .dl-btn:hover{opacity:.8;}
+  .minutes-body{padding:16px;font-size:12.5px;line-height:1.95;color:var(--text2);white-space:pre-wrap;word-break:break-word;border-top:1px solid rgba(201,168,76,.2);}
+
+  /* 우측 */
+  .right-panel{width:190px;min-width:190px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+  .rp-sec{padding:12px;border-bottom:1px solid var(--border);}
+  .rp-lbl{font-size:10px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+  .stat-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);margin-bottom:5px;}
+  .stat-val{font-weight:500;color:var(--text);}
+  .exp-btn{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:7px;font-size:11.5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .15s;margin-bottom:5px;}
+  .exp-btn:hover{background:var(--bg);color:var(--text);}
+
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--text3);min-height:200px;}
+  .empty-ico{font-size:34px;opacity:.2;}
+  .empty p{font-size:12.5px;}
+
+  /* 최초 설정 모달 */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;}
+  .modal-overlay.hidden{display:none;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:380px;max-width:90vw;}
+  .modal h2{font-family:'Noto Serif KR',serif;font-size:16px;color:var(--gold);margin-bottom:6px;}
+  .modal p{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:18px;}
+  .modal input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:10px 12px;font-size:13px;font-family:monospace;margin-bottom:10px;}
+  .modal input:focus{outline:none;border-color:var(--accent);}
+  .modal-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+  .modal-btn:hover{opacity:.9;}
+  .modal-link{display:block;text-align:center;margin-top:10px;font-size:11px;color:var(--text3);}
+  .modal-link a{color:var(--accent);text-decoration:none;}
+
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 15px;border-radius:7px;font-size:12px;animation:fadeUp .3s ease;z-index:999;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- 최초 API 키 입력 모달 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>이연희 의원실 전문가 그룹</h2>
+    <p>Gemini API 키를 입력하면 이 브라우저에 저장됩니다.<br>다음부터는 자동으로 로그인됩니다.</p>
+    <input type="password" id="modalKey" placeholder="AIzaSy..." onkeydown="if(event.key==='Enter')saveModalKey()"/>
+    <button class="modal-btn" onclick="saveModalKey()">저장하고 시작하기</button>
+    <span class="modal-link">키가 없다면 <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a>에서 발급</span>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-main">이연희 의원실 전문가 그룹</div>
+    <div class="logo-sub">Legislative Expert Group by Sun</div>
+  </div>
+  <div class="api-status"><div class="dot" id="sDot"></div><span id="sTxt">키 확인 중...</span></div>
+</header>
+
+<div class="main">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sb-sec">
+      <div class="sb-lbl">Gemini API 키</div>
+      <div class="key-wrap">
+        <input type="password" id="sideKey" placeholder="저장된 키 표시"/>
+        <div class="key-row">
+          <button class="key-btn" onclick="updateKey()">변경</button>
+          <button class="key-btn del" onclick="deleteKey()">삭제</button>
+        </div>
+        <div class="key-saved-msg" id="keySavedMsg"></div>
+      </div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">에이전트 현황</div>
+      <div id="agentList"></div>
+    </div>
+  </div>
+
+  <!-- 중앙 -->
+  <div class="center">
+    <div class="input-area">
+      <h2>현안 / 법안 입력</h2>
+      <textarea id="taskInput" placeholder="검토할 법안, 정책, 현안을 입력하세요.&#10;&#10;예시: 「전세사기 피해자 지원 특별법」 개정안 — 피해자 범위 확대 및 긴급 대출 지원 조항 신설을 다방면으로 검토해 주시오."></textarea>
+      <div class="input-controls">
+        <select class="mode-sel" id="modeSelect">
+          <option value="all">전체 토의 (13명)</option>
+          <option value="quick">핵심 5인</option>
+          <option value="legal">법률 집중</option>
+          <option value="policy">정책 집중</option>
+        </select>
+        <button class="run-btn" id="runBtn" onclick="run()">전문가 그룹 가동 ▶</button>
+      </div>
+    </div>
+    <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
+    <div class="tabs">
+      <div class="tab active" id="tab-btn-log" onclick="switchTab('log')">📋 진행 로그</div>
+      <div class="tab" id="tab-btn-results" onclick="switchTab('results')">💬 분석 결과</div>
+      <div class="tab" id="tab-btn-minutes" onclick="switchTab('minutes')">📄 최종 회의록</div>
+    </div>
+    <div class="output-wrap">
+      <div class="tab-panel active" id="panel-log"></div>
+      <div class="tab-panel" id="panel-results">
+        <div class="empty"><div class="empty-ico">💬</div><p>분석 결과가 여기에 표시됩니다.</p></div>
+      </div>
+      <div class="tab-panel" id="panel-minutes">
+        <div class="empty"><div class="empty-ico">📄</div><p>서기가 최종 회의록을 작성하면 여기에 표시됩니다.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 우측 패널 -->
+  <div class="right-panel">
+    <div class="rp-sec">
+      <div class="rp-lbl">실행 현황</div>
+      <div class="stat-row"><span>완료</span><span class="stat-val" id="stDone">0/0</span></div>
+      <div class="stat-row"><span>경과</span><span class="stat-val" id="stTime">—</span></div>
+      <div class="stat-row"><span>호출</span><span class="stat-val" id="stCalls">0회</span></div>
+    </div>
+    <div class="rp-sec">
+      <div class="rp-lbl">회의록 다운로드</div>
+      <button class="exp-btn" onclick="dlMinutes('txt')">📄 회의록 TXT</button>
+      <button class="exp-btn" onclick="dlMinutes('md')">📝 회의록 MD</button>
+    </div>
+    <div class="rp-sec">
+      <div class="rp-lbl">전체 내보내기</div>
+      <button class="exp-btn" onclick="dlAll('txt')">전체 TXT</button>
+      <button class="exp-btn" onclick="dlAll('md')">전체 MD</button>
+      <button class="exp-btn" onclick="copyAll()">전체 복사</button>
+    </div>
+    <div class="rp-sec">
+      <div class="rp-lbl">안내</div>
+      <p style="font-size:10.5px;color:var(--text3);line-height:1.7;">Claude 에이전트: 내장 API<br><br>Gemini 에이전트: Flash 2.0 무료<br><br>키는 이 브라우저에 저장됩니다</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'gemini_api_key_leeyh';
+
+const AGENTS=[
+  {id:'pm',name:'프로젝트 매니저',icon:'🗂️',model:'claude',group:['all','quick','legal','policy'],
+   prompt:`당신은 "프로젝트 매니저" 역할의 에이전트입니다. 목표를 일정과 과업으로 분해하고, 우선순위·담당자·산출물·마감기한을 관리해 프로젝트가 실제로 굴러가게 만드는 실행 관리형 에이전트입니다. 사실·해석·의견·추정을 구분하고, 결론부터 제시 후 근거, 불확실성·쟁점을 숨기지 말 것. 출력: 핵심 판단 / 근거 / 쟁점 / 에이전트들에게 던질 질문 / 결론 반영 문장 / 후속 실행 과제(담당·마감)`},
+  {id:'news',name:'뉴스리서처',icon:'📰',model:'gemini',group:['all','quick','policy'],
+   prompt:`당신은 "뉴스리서처" 역할의 에이전트입니다. 기사·보도·발언·통계 흐름을 수집·정리하고 사실관계와 맥락을 검토하는 정보 조사 에이전트입니다. 사실과 해석을 구분, 출처 불분명 주장과 확인된 사실을 섞지 말 것. 출력: 핵심 판단 / 최신 보도 요약 / 언론별 프레임 차이 / 확인 필요사항 / 결론 반영 문장`},
+  {id:'social',name:'사회 연구가',icon:'🔬',model:'gemini',group:['all','policy'],
+   prompt:`당신은 "사회 연구가" 역할의 에이전트입니다. 사회 현상, 여론, 불평등, 노동, 인구, 세대 문제를 구조적으로 분석하고 정책 함의를 도출하는 연구형 에이전트입니다. 현상→원인→영향→대안 구조. 출력: 핵심 판단 / 구조적 원인 / 사회적 파급효과 / 쟁점 / 결론 반영 문장`},
+  {id:'constitution',name:'헌법 학자',icon:'⚖️',model:'claude',group:['all','quick','legal'],
+   prompt:`당신은 "헌법 학자" 역할의 에이전트입니다. 헌법 원리, 기본권, 권력분립, 법치주의 관점에서 법안과 정책을 분석하는 헌법 해석 중심 에이전트입니다. 정치적 선호를 헌법 논리처럼 포장 금지. 명문 규정·판례·학설 구분. 출력: 핵심 판단 / 관련 헌법 원칙 / 위헌성 검토 / 기본권 충돌 분석 / 결론 반영 문장`},
+  {id:'legis',name:'입법 조사관',icon:'📋',model:'gemini',group:['all','quick','legal'],
+   prompt:`당신은 "입법 조사관" 역할의 에이전트입니다. 법률안·제도·선례를 조사·검토하여 입법 필요성, 문제점, 대안, 수정 방향을 정리하는 입법 실무형 에이전트입니다. 문제의식→현행 제도→개정 필요성→쟁점→대안 순서. 출력: 핵심 판단 / 현행 제도 현황 / 입법 쟁점 / 수정 방향 / 결론 반영 문장`},
+  {id:'lawyer',name:'법률가',icon:'🏛️',model:'claude',group:['all','quick','legal'],
+   prompt:`당신은 "법률가" 역할의 에이전트입니다. 법률 문장, 제도, 규제, 책임 관계를 법률적으로 검토하고 위험 요소와 대응 논리를 정리하는 실무형 법률 에이전트입니다. 단정적 판단 남발 금지. 사실관계 부족 시 가정·전제 명시. 출력: 핵심 판단 / 법적 근거 / 위법성·책임 분석 / 소송 리스크 / 결론 반영 문장`},
+  {id:'policy',name:'민주당 정책 전문가',icon:'🗳️',model:'claude',group:['all','quick','policy'],
+   prompt:`당신은 "민주당 정책 전문가" 역할의 에이전트입니다. 민주당의 가치와 노선을 바탕으로 정책 설명자료, 발언문, 반박 논리를 작성하는 정책 전문 에이전트입니다. 사실과 입장을 구분. 비판 대상 주장도 왜곡 없이 요약 후 반박. 출력: 핵심 판단 / 정책 목표·효과 / 예상 반론 및 재반박 / 결론 반영 문장`},
+  {id:'creative',name:'창의력 대장',icon:'🎨',model:'gemini',group:['all','policy'],
+   prompt:`당신은 "창의력 대장" 역할의 에이전트입니다. 복잡한 메시지를 쉽고 인상적으로 바꾸고, 슬로건·비유·콘셉트를 창의적으로 만드는 아이디어형 에이전트입니다. 사실관계를 해치는 과장 금지. 출력: 핵심 판단 / 메시지 제안 3종(강한·무난·감성형) / 표현 전략 / 결론 반영 문장`},
+  {id:'critic',name:'비평가',icon:'🔍',model:'gemini',group:['all','quick'],
+   prompt:`당신은 "비평가" 역할의 에이전트입니다. 주장·정책·법안의 허점과 약점을 찾아내고 견고한 논리로 다듬게 돕는 검증형 에이전트입니다. 인신공격이 아닌 논리 검증 집중. 출력: 핵심 판단 / 강점 / 약점·허점 / 가장 아픈 예상 반론 / 보완 제안 / 결론 반영 문장`},
+  {id:'fact',name:'팩트체커',icon:'✅',model:'gemini',group:['all','quick'],
+   prompt:`당신은 "팩트체커" 역할의 에이전트입니다. 주장·발언·통계·법률 인용이 사실에 부합하는지 검증하고 확인된 사실과 불확실한 부분을 구분합니다. 판정: 사실/대체로 사실/절반만 사실/사실 아님/판단 유보. 출력: 핵심 판단 / 검증 대상 목록 / 판정 및 근거 / 추가 확인 필요사항 / 결론 반영 문장`},
+  {id:'aide',name:'보좌관',icon:'📎',model:'claude',group:['all','quick','legal','policy'],
+   prompt:`당신은 "보좌관" 역할의 에이전트입니다. 의원실 실무 관점에서 질의서, 브리핑, 메시지, 현안 보고를 빠르게 정리하는 국회·정무형 에이전트입니다. 길게 늘어놓지 말고 바로 쓸 수 있게. 출력: 핵심 판단 / 실무 활용 메시지 / 보고용 1줄 요약 / 예상 Q&A / 결론 반영 문장`},
+  {id:'humanities',name:'인문학자',icon:'📚',model:'gemini',group:['all'],
+   prompt:`당신은 "인문학자" 역할의 에이전트입니다. 역사·철학·문화 관점에서 현상의 의미를 해석하고 가치·맥락·서사를 풍부하게 만드는 사유형 에이전트입니다. 추상적 수사만 많고 실질이 빈 문장 금지. 출력: 핵심 판단 / 역사·철학적 맥락 / 가치 해석 / 서사 제안 / 결론 반영 문장`},
+  {id:'secretary',name:'서기',icon:'📝',model:'claude',group:['all','quick','legal','policy'],
+   prompt:`당신은 "서기" 역할의 에이전트입니다. 모든 논의를 기록하고 회의록 형태로 정리하는 기록형 에이전트입니다. 아래 형식으로 최종 회의록을 작성하세요:
+
+# 이연희 의원실 전문가 그룹 회의록
+
+## 1. 회의 개요
+- 안건:
+- 참석 에이전트:
+- 작성일:
+
+## 2. 에이전트별 핵심 의견 요약
+(각 에이전트 의견 2~3줄 압축)
+
+## 3. 주요 쟁점
+
+## 4. 합의된 사항
+
+## 5. 이견 또는 유보사항
+
+## 6. 최종 결론
+(핵심 결론 및 종합 평가)
+
+## 7. 후속 조치
+(담당·마감·산출물 포함)`},
+];
+
+let gKey='', running=false, results={}, t0=null, timer=null, calls=0;
+
+// ===== 초기화 — localStorage에서 키 불러오기 =====
+function init(){
+  document.getElementById('agentList').innerHTML = AGENTS.map(a=>`
+    <div class="agent-chip" id="chip_${a.id}" onclick="goResult('${a.id}')">
+      <div class="chip-icon">${a.icon}</div>
+      <span>${a.name}</span>
+      <span class="chip-st" id="cst_${a.id}"><span style="font-size:9px;color:var(--text3)">${a.model==='claude'?'C':'G'}</span></span>
+    </div>`).join('');
+
+  addLog('시스템 초기화 중...', 'info');
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved && saved.length > 10){
+    gKey = saved;
+    document.getElementById('sideKey').value = '●'.repeat(12);
+    document.getElementById('keySavedMsg').textContent = '✓ 저장된 키 사용 중';
+    setStatus(true);
+    document.getElementById('modalOverlay').classList.add('hidden');
+    addLog('✓ 저장된 Gemini API 키 로드됨', 'done');
+  } else {
+    setStatus(false);
+    document.getElementById('modalOverlay').classList.remove('hidden');
+    addLog('Gemini API 키를 입력해주세요.', 'info');
+  }
+}
+
+function saveModalKey(){
+  const v = document.getElementById('modalKey').value.trim();
+  if(!v || v.length < 10) return toast('유효한 키를 입력하세요.');
+  gKey = v;
+  localStorage.setItem(STORAGE_KEY, v);
+  document.getElementById('sideKey').value = '●'.repeat(12);
+  document.getElementById('keySavedMsg').textContent = '✓ 저장됨';
+  document.getElementById('modalOverlay').classList.add('hidden');
+  setStatus(true);
+  addLog('✓ Gemini API 키 저장 완료. 시스템 준비됨.', 'done');
+  toast('✅ 키 저장 완료. 이제 분석을 시작할 수 있습니다.');
+}
+
+function updateKey(){
+  const v = document.getElementById('sideKey').value.trim();
+  if(!v || v.includes('●')) {
+    document.getElementById('modalOverlay').classList.remove('hidden');
+    document.getElementById('modalKey').value = '';
+    return;
+  }
+  if(v.length < 10) return toast('유효한 키를 입력하세요.');
+  gKey = v;
+  localStorage.setItem(STORAGE_KEY, v);
+  document.getElementById('sideKey').value = '●'.repeat(12);
+  document.getElementById('keySavedMsg').textContent = '✓ 변경됨';
+  setStatus(true);
+  toast('✅ API 키 변경됨');
+}
+
+function deleteKey(){
+  if(!confirm('저장된 Gemini API 키를 삭제하시겠습니까?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  gKey = '';
+  document.getElementById('sideKey').value = '';
+  document.getElementById('keySavedMsg').textContent = '';
+  setStatus(false);
+  document.getElementById('modalOverlay').classList.remove('hidden');
+  toast('키가 삭제됨');
+}
+
+function setStatus(ok){
+  document.getElementById('sDot').style.background = ok ? 'var(--success)' : 'var(--warn)';
+  document.getElementById('sTxt').textContent = ok ? 'API 준비됨' : 'Gemini 키 필요';
+}
+
+function switchTab(name){
+  ['log','results','minutes'].forEach(n=>{
+    document.getElementById('tab-btn-'+n).classList.toggle('active', n===name);
+    document.getElementById('panel-'+n).classList.toggle('active', n===name);
+  });
+}
+
+function addLog(msg, type='info'){
+  const area = document.getElementById('panel-log');
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const d = document.createElement('div');
+  d.className = `log-line ${type}`;
+  d.innerHTML = `<span class="log-time">${ts}</span>${msg}`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+async function run(){
+  const task = document.getElementById('taskInput').value.trim();
+  if(!task) return toast('현안을 입력하세요.');
+  if(!gKey) return toast('Gemini API 키를 먼저 저장하세요.');
+  if(running) return;
+
+  const mode = document.getElementById('modeSelect').value;
+  const agents = AGENTS.filter(a => a.group.includes(mode));
+
+  running=true; results={}; calls=0;
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('runBtn').textContent = '실행 중...';
+  document.getElementById('progWrap').classList.add('on');
+  document.getElementById('panel-log').innerHTML = '';
+  document.getElementById('panel-results').innerHTML = '<div class="empty"><div class="empty-ico">💬</div><p>분석 중...</p></div>';
+  document.getElementById('panel-minutes').innerHTML = '<div class="empty"><div class="empty-ico">📄</div><p>서기가 작성 예정...</p></div>';
+
+  t0=Date.now(); timer=setInterval(tick,1000);
+  document.getElementById('stDone').textContent = `0/${agents.length}`;
+  document.getElementById('stCalls').textContent = '0회';
+  switchTab('log');
+
+  const modeName = document.getElementById('modeSelect').selectedOptions[0].text;
+  addLog(`▶ 전문가 그룹 가동 — ${modeName}`, 'start');
+  addLog(`📌 현안: ${task.slice(0,70)}${task.length>70?'…':''}`, 'info');
+  addLog(`👥 참여 에이전트: ${agents.length}명`, 'info');
+  addLog('', 'info');
+
+  const mainAgents = agents.filter(a => a.id !== 'secretary');
+  const sec = agents.find(a => a.id === 'secretary');
+
+  // 결과 패널 초기화 + 카드 생성
+  document.getElementById('panel-results').innerHTML = '';
+  mainAgents.forEach(a => { mkCard(a); setChip(a.id,'running'); });
+
+  let done=0;
+  for(const a of mainAgents){
+    setProgress(done / agents.length * 88);
+    addLog(`⟳ [${a.name}] 분석 시작 (${a.model==='claude'?'Claude':'Gemini'})...`, 'start');
+    try{
+      const r = await callAgent(a, task);
+      results[a.id] = r;
+      fillCard(a, r);
+      setChip(a.id, 'done');
+      addLog(`✓ [${a.name}] 분석 완료`, 'done');
+    }catch(e){
+      results[a.id] = `[오류] ${e.message}`;
+      fillCard(a, `[오류] ${e.message}`);
+      setChip(a.id, 'error');
+      addLog(`✗ [${a.name}] 오류: ${e.message}`, 'error');
+    }
+    done++;
+    document.getElementById('stDone').textContent = `${done}/${agents.length}`;
+    document.getElementById('stCalls').textContent = `${calls}회`;
+  }
+
+  // 서기
+  if(sec){
+    setProgress(92);
+    addLog('', 'info');
+    addLog('📝 서기가 최종 회의록 작성 중...', 'final');
+    setChip('secretary', 'running');
+    const combined = mainAgents.map(a=>`[${a.name}]\n${results[a.id]||'(없음)'}`).join('\n\n---\n\n');
+    const secTask = `다음은 각 전문 에이전트 분석 결과입니다. 최종 회의록을 작성하세요.\n\n현안: ${task}\n\n${combined}`;
+    try{
+      const r = await callAgent(sec, secTask);
+      results['secretary'] = r;
+      renderMinutes(r);
+      setChip('secretary', 'done');
+      addLog('✓ [서기] 최종 회의록 작성 완료', 'done');
+      addLog('', 'info');
+      addLog('🎉 전문가 그룹 분석 전체 완료!', 'final');
+      setTimeout(()=>switchTab('minutes'), 700);
+    }catch(e){
+      results['secretary'] = `[오류] ${e.message}`;
+      addLog(`✗ [서기] 오류: ${e.message}`, 'error');
+      setChip('secretary', 'error');
+    }
+    done++;
+    document.getElementById('stDone').textContent = `${done}/${agents.length}`;
+  }
+
+  setProgress(100);
+  clearInterval(timer);
+  running=false;
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('runBtn').textContent = '전문가 그룹 가동 ▶';
+  toast('✅ 완료 — 회의록 탭을 확인하세요');
+}
+
+async function callAgent(a, task){
+  calls++;
+  return a.model==='claude' ? await callClaude(a,task) : await callGemini(a,task);
+}
+async function callClaude(a, task){
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:a.prompt,messages:[{role:'user',content:`현안:\n${task}`}]})
+  });
+  const d = await res.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content?.map(c=>c.text||'').join('')||'';
+}
+async function callGemini(a, task){
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${gKey}`;
+  const res = await fetch(url,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({system_instruction:{parts:[{text:a.prompt}]},contents:[{parts:[{text:`현안:\n${task}`}]}]})
+  });
+  const d = await res.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+}
+
+function mkCard(a){
+  const p = document.getElementById('panel-results');
+  const c = document.createElement('div');
+  c.className='agent-card loading'; c.id=`card_${a.id}`;
+  c.innerHTML=`<div class="card-hdr" onclick="toggleCard('${a.id}')"><span class="card-ico">${a.icon}</span><span class="card-ttl">${a.name}</span><span class="card-mdl">${a.model==='claude'?'Claude':'Gemini'}</span><span class="card-tog">▾</span></div><div class="card-body" id="cbody_${a.id}"><div class="spinner"></div><span>분석 중...</span></div>`;
+  p.appendChild(c);
+}
+function fillCard(a, text){
+  const c = document.getElementById(`card_${a.id}`);
+  if(!c) return;
+  c.classList.remove('loading','collapsed');
+  document.getElementById(`cbody_${a.id}`).textContent = text;
+}
+function renderMinutes(text){
+  const date = new Date().toLocaleDateString('ko-KR');
+  const mkCard = (target) => {
+    const mc = document.createElement('div');
+    mc.className='minutes-card';
+    mc.innerHTML=`
+      <div class="minutes-hdr">
+        <div class="minutes-hdr-left"><span style="font-size:18px">📄</span><h3>최종 회의록</h3></div>
+        <div class="dl-group">
+          <button class="dl-btn sec" onclick="dlMinutes('md')">MD</button>
+          <button class="dl-btn primary" onclick="dlMinutes('txt')">⬇ 다운로드</button>
+        </div>
+      </div>
+      <div class="minutes-body">${escHtml(text)}</div>`;
+    target.innerHTML='';
+    target.appendChild(mc);
+  };
+  mkCard(document.getElementById('panel-minutes'));
+  // 결과 탭에도 추가
+  const rp = document.getElementById('panel-results');
+  const rc = document.createElement('div');
+  rc.className='minutes-card';
+  rc.innerHTML=`
+    <div class="minutes-hdr">
+      <div class="minutes-hdr-left"><span style="font-size:16px">📝</span><h3>최종 회의록 — 서기 작성</h3></div>
+      <div class="dl-group">
+        <button class="dl-btn sec" onclick="dlMinutes('md')">MD</button>
+        <button class="dl-btn primary" onclick="dlMinutes('txt')">⬇ 다운로드</button>
+      </div>
+    </div>
+    <div class="minutes-body">${escHtml(text)}</div>`;
+  rp.appendChild(rc);
+}
+function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleCard(id){ document.getElementById(`card_${id}`)?.classList.toggle('collapsed'); }
+function goResult(id){
+  switchTab('results');
+  setTimeout(()=>{const c=document.getElementById(`card_${id}`);if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.classList.remove('collapsed');}},100);
+}
+function setChip(id, state){
+  const chip=document.getElementById(`chip_${id}`);
+  const cst=document.getElementById(`cst_${id}`);
+  if(!chip) return;
+  chip.className=`agent-chip ${state}`;
+  const ico={running:'⟳',done:'✓',error:'✗'};
+  const m=AGENTS.find(a=>a.id===id)?.model;
+  cst.innerHTML=`<span style="margin-right:3px">${ico[state]||''}</span><span style="font-size:9px;color:var(--text3)">${m==='claude'?'C':'G'}</span>`;
+}
+function setProgress(p){ document.getElementById('progBar').style.width=p+'%'; }
+function tick(){
+  if(!t0) return;
+  const s=Math.floor((Date.now()-t0)/1000);
+  document.getElementById('stTime').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+function dlMinutes(fmt){
+  const text=results['secretary']||'';
+  if(!text) return toast('회의록이 없습니다. 분석을 먼저 실행하세요.');
+  const date=new Date().toISOString().slice(0,10);
+  const content=fmt==='md'
+    ?`# 이연희 의원실 전문가 그룹 회의록\n생성일: ${date}\n\n${text}`
+    :`이연희 의원실 전문가 그룹 회의록\n생성일: ${date}\n${'='.repeat(40)}\n\n${text}`;
+  dl(`회의록_${date}.${fmt}`, content);
+  toast(`✅ 회의록 다운로드 완료`);
+}
+function dlAll(fmt){
+  const date=new Date().toISOString().slice(0,10);
+  const rows=AGENTS.map(a=>{const r=results[a.id];return r?`【${a.name}】\n${r}`:null;}).filter(Boolean);
+  if(!rows.length) return toast('내보낼 결과가 없습니다.');
+  const content=fmt==='md'
+    ?rows.map((r,i)=>`## ${AGENTS[i]?.icon||''} ${r.split('\n')[0].replace('【','').replace('】','')}\n\n${r.split('\n').slice(1).join('\n')}`).join('\n\n---\n\n')
+    :rows.join('\n\n'+'='.repeat(40)+'\n\n');
+  dl(`전문가그룹_전체_${date}.${fmt}`, content);
+  toast('✅ 전체 다운로드 완료');
+}
+function copyAll(){
+  const t=AGENTS.map(a=>{const r=results[a.id];return r?`【${a.name}】\n${r}`:null;}).filter(Boolean).join('\n\n'+'='.repeat(40)+'\n\n');
+  if(!t) return toast('복사할 내용이 없습니다.');
+  navigator.clipboard.writeText(t).then(()=>toast('📋 전체 복사 완료'));
+}
+function dl(name,text){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
+  a.download=name; a.click();
+}
+function toast(msg){
+  const t=document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+init();
+</script>
+</body>
+</html>
