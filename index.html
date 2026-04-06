@@ -499,13 +499,27 @@ async function callAgent(a, task){
 }
 async function callGemini(a, task){
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${gKey}`;
-  const res = await fetch(url,{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({system_instruction:{parts:[{text:a.prompt}]},contents:[{parts:[{text:`현안:\n${task}`}]}]})
-  });
-  const d = await res.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+  const maxRetries = 3;
+  for(let attempt=1; attempt<=maxRetries; attempt++){
+    const res = await fetch(url,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system_instruction:{parts:[{text:a.prompt}]},contents:[{parts:[{text:`현안:\n${task}`}]}]})
+    });
+    const d = await res.json();
+    if(d.error){
+      const msg = d.error.message||'';
+      const retryMatch = msg.match(/retry in ([\d.]+)s/i);
+      if((msg.includes('quota') || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) && retryMatch && attempt < maxRetries){
+        const waitSec = Math.ceil(parseFloat(retryMatch[1])) + 5;
+        addLog(`⚠️ [${a.name}] 쿼타 초과 — ${waitSec}초 대기 후 재시도 (${attempt}/${maxRetries})`, 'error');
+        await sleep(waitSec * 1000);
+        calls++;
+        continue;
+      }
+      throw new Error(msg);
+    }
+    return d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+  }
 }
 
 
