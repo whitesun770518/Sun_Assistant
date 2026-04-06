@@ -171,6 +171,16 @@
       </div>
     </div>
     <div class="sb-sec">
+      <div class="sb-lbl">Gemini 모델 선택</div>
+      <select class="mode-sel" id="modelSelect" style="width:100%;margin-bottom:4px;font-size:11px;">
+        <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (무료 권장)</option>
+        <option value="gemini-1.5-flash">gemini-1.5-flash (무료)</option>
+        <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+      </select>
+      <div style="font-size:9.5px;color:var(--text3);line-height:1.5;">무료 키는 flash-lite 권장<br>유료 키는 다른 모델도 가능</div>
+    </div>
+    <div class="sb-sec">
       <div class="sb-lbl">에이전트 현황</div>
       <div id="agentList"></div>
     </div>
@@ -402,7 +412,8 @@ async function run(){
   switchTab('log');
 
   const modeName = document.getElementById('modeSelect').selectedOptions[0].text;
-  addLog(`▶ 전문가 그룹 가동 — ${modeName} (All Gemini)`, 'start');
+  const selModelName = document.getElementById('modelSelect').value;
+    addLog(`▶ 전문가 그룹 가동 — ${modeName} (All Gemini: ${selModelName})`, 'start');
   addLog(`📌 현안: ${task.slice(0,70)}${task.length>70?'…':''}`, 'info');
   addLog(`👥 참여 에이전트: ${agents.length}명 (전원 Gemini)`, 'info');
   addLog('⏱️ 각 호출 간 60초 대기가 적용됩니다.', 'info');
@@ -498,8 +509,9 @@ async function callAgent(a, task){
   return await callGemini(a,task);
 }
 async function callGemini(a, task){
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${gKey}`;
-  const maxRetries = 3;
+  const selModel = document.getElementById('modelSelect').value;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${selModel}:generateContent?key=${gKey}`;
+  const maxRetries = 5;
   for(let attempt=1; attempt<=maxRetries; attempt++){
     const res = await fetch(url,{
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -508,9 +520,11 @@ async function callGemini(a, task){
     const d = await res.json();
     if(d.error){
       const msg = d.error.message||'';
-      const retryMatch = msg.match(/retry in ([\d.]+)s/i);
-      if((msg.includes('quota') || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED')) && retryMatch && attempt < maxRetries){
-        const waitSec = Math.ceil(parseFloat(retryMatch[1])) + 5;
+      const isQuota = msg.includes('quota') || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('limit');
+      if(isQuota && attempt < maxRetries){
+        const retryMatch = msg.match(/retry in ([\d.]+)s/i);
+        const baseSec = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : 60;
+        const waitSec = baseSec + 10;
         addLog(`⚠️ [${a.name}] 쿼타 초과 — ${waitSec}초 대기 후 재시도 (${attempt}/${maxRetries})`, 'error');
         await sleep(waitSec * 1000);
         calls++;
