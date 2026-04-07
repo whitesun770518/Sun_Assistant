@@ -490,8 +490,8 @@ async function run(){
         const isQuota = e.message.includes('quota') || e.message.includes('Quota') || e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED');
         if(isQuota && retries > 1){
           retries--;
-          const wait = 8000;
-          addLog(`⏳ [${a.name}] 잠시 대기 후 재시도... (${retries}회 남음)`, 'info');
+          const wait = 30000;
+          addLog(`⏳ [${a.name}] 30초 대기 후 재시도... (${retries}회 남음)`, 'info');
           await new Promise(r=>setTimeout(r, wait));
         } else {
           results[a.id] = `[오류] ${e.message.slice(0,80)}`;
@@ -518,7 +518,7 @@ async function run(){
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
-    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 4000));
+    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 8000));
   }
 
   if(sec){
