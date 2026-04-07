@@ -133,11 +133,27 @@
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .pause-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .15s;white-space:nowrap;}
+  .pause-btn:hover{background:var(--warn);color:#fff;border-color:var(--warn);}
+  .pause-btn.paused{background:var(--success);color:#fff;border-color:var(--success);}
   .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 15px;border-radius:7px;font-size:12px;animation:fadeUp .3s ease;z-index:999;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
+
+<!-- 오류 상세 모달 -->
+<div class="modal-overlay hidden" id="errorOverlay" onclick="closeErrorModal()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:600px;width:95vw;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <h2 style="color:var(--danger);">⚠️ 오류 상세 정보</h2>
+      <button onclick="closeErrorModal()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <div id="errorDetail" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:var(--danger);white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;margin-bottom:14px;"></div>
+    <p style="font-size:11px;color:var(--text3);line-height:1.7;margin-bottom:14px;" id="errorHint"></p>
+    <button class="modal-btn" onclick="closeErrorModal()">닫기</button>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -188,6 +204,7 @@
           <option value="policy">정책 집중</option>
         </select>
         <button class="run-btn" id="runBtn" onclick="run()">전문가 그룹 가동 ▶</button>
+        <button class="pause-btn" id="pauseBtn" onclick="togglePause()" style="display:none">⏸ 일시정지</button>
       </div>
     </div>
     <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
@@ -286,9 +303,45 @@ const AGENTS=[
 (담당·마감·산출물 포함)`},
 ];
 
-let gKey='', running=false, results={}, t0=null, timer=null, calls=0;
+let gKey='', running=false, paused=false, results={}, t0=null, timer=null, calls=0;
 
 
+
+function togglePause(){
+  paused = !paused;
+  const btn = document.getElementById('pauseBtn');
+  if(paused){
+    btn.textContent = '▶ 재개';
+    btn.classList.add('paused');
+    addLog('⏸ 일시정지됨 — 재개 버튼을 눌러 계속', 'info');
+  } else {
+    btn.textContent = '⏸ 일시정지';
+    btn.classList.remove('paused');
+    addLog('▶ 재개됨', 'start');
+  }
+}
+
+function showErrorModal(agentName, rawError){
+  let hint = '';
+  if(rawError.includes('quota') || rawError.includes('Quota') || rawError.includes('RESOURCE_EXHAUSTED')){
+    hint = '💡 원인: API 무료 한도 초과\n• 일일 요청 수 또는 분당 요청 수(RPM) 초과\n• 해결: 잠시 후 재시도 또는 새 API 키 사용';
+  } else if(rawError.includes('API_KEY_INVALID') || rawError.includes('expired')){
+    hint = '💡 원인: API 키 문제\n• 키가 만료되었거나 잘못됨\n• 해결: 새 키를 발급받아 변경 버튼으로 교체';
+  } else if(rawError.includes('fetch') || rawError.includes('CORS') || rawError.includes('network')){
+    hint = '💡 원인: 네트워크/CORS 오류\n• 브라우저 보안 정책으로 차단됨\n• 해결: 페이지 새로고침 후 재시도';
+  } else if(rawError.includes('not found') || rawError.includes('404')){
+    hint = '💡 원인: 모델 또는 API 주소 오류\n• 모델명이 잘못되었을 수 있음';
+  } else {
+    hint = '💡 F12 → Console 탭에서 더 자세한 오류를 확인할 수 있습니다.';
+  }
+  document.getElementById('errorDetail').textContent = `[${agentName}] 오류 상세:\n\n${rawError}`;
+  document.getElementById('errorHint').textContent = hint;
+  document.getElementById('errorOverlay').classList.remove('hidden');
+}
+
+function closeErrorModal(){
+  document.getElementById('errorOverlay').classList.add('hidden');
+}
 
 function init(){
   document.getElementById('agentList').innerHTML = AGENTS.map(a=>`
@@ -389,8 +442,12 @@ async function run(){
   const agents = AGENTS.filter(a => a.group.includes(mode));
 
   running=true; results={}; calls=0;
+  paused = false;
   document.getElementById('runBtn').disabled = true;
   document.getElementById('runBtn').textContent = '실행 중...';
+  document.getElementById('pauseBtn').style.display = 'inline-block';
+  document.getElementById('pauseBtn').textContent = '⏸ 일시정지';
+  document.getElementById('pauseBtn').classList.remove('paused');
   document.getElementById('progWrap').classList.add('on');
   document.getElementById('panel-log').innerHTML = '';
   document.getElementById('panel-results').innerHTML = '<div class="empty"><div class="empty-ico">💬</div><p>분석 중...</p></div>';
@@ -417,6 +474,8 @@ async function run(){
   let done=0;
   for(const a of mainAgents){
     setProgress(done / agents.length * 88);
+    // 일시정지 대기
+    while(paused){ await new Promise(r=>setTimeout(r,500)); }
     addLog(`⟳ [${a.name}] 분석 시작...`, 'start');
     let retries = 3;
     while(retries > 0){
@@ -438,7 +497,20 @@ async function run(){
           results[a.id] = `[오류] ${e.message.slice(0,80)}`;
           fillCard(a, `[오류] ${e.message.slice(0,80)}`);
           setChip(a.id, 'error');
-          addLog(`✗ [${a.name}] 오류: ${e.message.slice(0,100)}`, 'error');
+          const shortMsg = e.message.slice(0,80);
+        const fullMsg = e.message;
+        const area2 = document.getElementById('panel-log');
+        const d2 = document.createElement('div');
+        d2.className='log-line error';
+        d2.style.cursor='pointer';
+        d2.style.textDecoration='underline dotted';
+        d2.title='클릭하면 오류 상세 보기';
+        const ts2=new Date();
+        const t2=`${String(ts2.getHours()).padStart(2,'0')}:${String(ts2.getMinutes()).padStart(2,'0')}:${String(ts2.getSeconds()).padStart(2,'0')}`;
+        d2.innerHTML=`<span class="log-time">${t2}</span>✗ [${a.name}] ${shortMsg} <span style="font-size:10px;opacity:.6;">[클릭: 상세보기]</span>`;
+        d2.onclick = ()=>showErrorModal(a.name, fullMsg);
+        area2.appendChild(d2);
+        area2.scrollTop=area2.scrollHeight;
           break;
         }
       }
@@ -479,6 +551,7 @@ async function run(){
   running=false;
   document.getElementById('runBtn').disabled = false;
   document.getElementById('runBtn').textContent = '전문가 그룹 가동 ▶';
+  document.getElementById('pauseBtn').style.display = 'none';
   toast('✅ 완료 — 회의록 탭을 확인하세요');
 }
 
