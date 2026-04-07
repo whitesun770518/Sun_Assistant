@@ -417,23 +417,36 @@ async function run(){
   let done=0;
   for(const a of mainAgents){
     setProgress(done / agents.length * 88);
-
-    addLog(`⟳ [${a.name}] 분석 시작 (Gemini)...`, 'start');
-    try{
-      const r = await callAgent(a, task);
-      results[a.id] = r;
-      fillCard(a, r);
-      setChip(a.id, 'done');
-      addLog(`✓ [${a.name}] 분석 완료`, 'done');
-    }catch(e){
-      results[a.id] = `[오류] ${e.message}`;
-      fillCard(a, `[오류] ${e.message}`);
-      setChip(a.id, 'error');
-      addLog(`✗ [${a.name}] 오류: ${e.message}`, 'error');
+    addLog(`⟳ [${a.name}] 분석 시작...`, 'start');
+    let retries = 3;
+    while(retries > 0){
+      try{
+        const r = await callAgent(a, task);
+        results[a.id] = r;
+        fillCard(a, r);
+        setChip(a.id, 'done');
+        addLog(`✓ [${a.name}] 완료`, 'done');
+        break;
+      }catch(e){
+        const isQuota = e.message.includes('quota') || e.message.includes('Quota') || e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED');
+        if(isQuota && retries > 1){
+          retries--;
+          const wait = 8000;
+          addLog(`⏳ [${a.name}] 잠시 대기 후 재시도... (${retries}회 남음)`, 'info');
+          await new Promise(r=>setTimeout(r, wait));
+        } else {
+          results[a.id] = `[오류] ${e.message.slice(0,80)}`;
+          fillCard(a, `[오류] ${e.message.slice(0,80)}`);
+          setChip(a.id, 'error');
+          addLog(`✗ [${a.name}] 오류: ${e.message.slice(0,100)}`, 'error');
+          break;
+        }
+      }
     }
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
+    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 4000));
   }
 
   if(sec){
