@@ -477,7 +477,8 @@ async function run(){
     // 일시정지 대기
     while(paused){ await new Promise(r=>setTimeout(r,500)); }
     addLog(`⟳ [${a.name}] 분석 시작...`, 'start');
-    let retries = 3;
+    let retries = 7;
+    let retryWait = 20000;
     while(retries > 0){
       try{
         const r = await callAgent(a, task);
@@ -487,30 +488,34 @@ async function run(){
         addLog(`✓ [${a.name}] 완료`, 'done');
         break;
       }catch(e){
-        const isQuota = e.message.includes('quota') || e.message.includes('Quota') || e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED');
-        if(isQuota && retries > 1){
+        const isRetry = e.message.includes('quota') || e.message.includes('Quota') ||
+                        e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED') ||
+                        e.message.includes('high demand') || e.message.includes('temporarily') ||
+                        e.message.includes('try again');
+        if(isRetry && retries > 1){
           retries--;
-          const wait = 30000;
-          addLog(`⏳ [${a.name}] 30초 대기 후 재시도... (${retries}회 남음)`, 'info');
-          await new Promise(r=>setTimeout(r, wait));
+          const sec = Math.round(retryWait/1000);
+          addLog(`⏳ [${a.name}] ${sec}초 대기 후 재시도... (${retries}회 남음)`, 'info');
+          await new Promise(r=>setTimeout(r, retryWait));
+          retryWait = Math.min(retryWait * 2, 120000);
         } else {
           results[a.id] = `[오류] ${e.message.slice(0,80)}`;
           fillCard(a, `[오류] ${e.message.slice(0,80)}`);
           setChip(a.id, 'error');
           const shortMsg = e.message.slice(0,80);
-        const fullMsg = e.message;
-        const area2 = document.getElementById('panel-log');
-        const d2 = document.createElement('div');
-        d2.className='log-line error';
-        d2.style.cursor='pointer';
-        d2.style.textDecoration='underline dotted';
-        d2.title='클릭하면 오류 상세 보기';
-        const ts2=new Date();
-        const t2=`${String(ts2.getHours()).padStart(2,'0')}:${String(ts2.getMinutes()).padStart(2,'0')}:${String(ts2.getSeconds()).padStart(2,'0')}`;
-        d2.innerHTML=`<span class="log-time">${t2}</span>✗ [${a.name}] ${shortMsg} <span style="font-size:10px;opacity:.6;">[클릭: 상세보기]</span>`;
-        d2.onclick = ()=>showErrorModal(a.name, fullMsg);
-        area2.appendChild(d2);
-        area2.scrollTop=area2.scrollHeight;
+          const fullMsg = e.message;
+          const area2 = document.getElementById('panel-log');
+          const d2 = document.createElement('div');
+          d2.className='log-line error';
+          d2.style.cursor='pointer';
+          d2.style.textDecoration='underline dotted';
+          d2.title='클릭하면 오류 상세 보기';
+          const ts2=new Date();
+          const t2=`${String(ts2.getHours()).padStart(2,'0')}:${String(ts2.getMinutes()).padStart(2,'0')}:${String(ts2.getSeconds()).padStart(2,'0')}`;
+          d2.innerHTML=`<span class="log-time">${t2}</span>✗ [${a.name}] ${shortMsg} <span style="font-size:10px;opacity:.6;">[클릭: 상세보기]</span>`;
+          d2.onclick = ()=>showErrorModal(a.name, fullMsg);
+          area2.appendChild(d2);
+          area2.scrollTop=area2.scrollHeight;
           break;
         }
       }
@@ -518,7 +523,7 @@ async function run(){
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
-    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 8000));
+    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 10000));
   }
 
   if(sec){
