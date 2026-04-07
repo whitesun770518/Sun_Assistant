@@ -561,7 +561,7 @@ async function callAgent(a, task){
   return await callGemini(a, task);
 }
 async function callGemini(a, task){
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${gKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${gKey}`;
   const res = await fetch(url,{
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({system_instruction:{parts:[{text:a.prompt}]},contents:[{parts:[{text:`현안:\n${task}`}]}]})
