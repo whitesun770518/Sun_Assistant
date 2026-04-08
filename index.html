@@ -707,9 +707,9 @@ async function run(){
         retries--;
         if(retries > 0){
           // 실패 시 전체 흐름 멈추고 50초 대기 (Gemini 정책 40초 + 여유 10초)
-          addLog(`⏳ [${a.name}] 오류 발생 → 전체 50초 대기 후 재시도... (${retries}회 남음)`, 'info');
+          addLog(`⏳ [${a.name}] 오류 발생 → 전체 70초 대기 후 재시도... (${retries}회 남음)`, 'info');
           addLog(`   └ ${lastErr.slice(0,80)}`, 'info');
-          await new Promise(r=>setTimeout(r, 50000));
+          await new Promise(r=>setTimeout(r, 70000));
         } else {
           results[a.id] = `[최종 실패] ${lastErr.slice(0,80)}`;
           fillCard(a, `[최종 실패] ${lastErr.slice(0,80)}`);
@@ -733,7 +733,7 @@ async function run(){
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
-    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 10000));
+    if(done < mainAgents.length) await new Promise(r=>setTimeout(r, 30000));
   }
 
   if(sec){
