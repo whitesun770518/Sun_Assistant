@@ -691,48 +691,66 @@ async function run(){
   let done=0;
   for(const a of mainAgents){
     setProgress(done / agents.length * 88);
-    // 일시정지 대기
     while(paused){ await new Promise(r=>setTimeout(r,500)); }
 
     addLog(`⟳ [${a.name}] 분석 시작... (응답 대기 중)`, 'start');
-    try{
-      const r = await callAgent(a, task);
-      results[a.id] = r;
-      fillCard(a, r);
-      setChip(a.id, 'done');
-      addLog(`✓ [${a.name}] 완료`, 'done');
-    }catch(e){
-      const lastErr = e.message || String(e);
-      const errInfo = classifyError(lastErr);
-      results[a.id] = `[실패 — ${errInfo.type}] ${lastErr.slice(0,80)}`;
-      fillCard(a, `[실패 — ${errInfo.type}]\n${lastErr.slice(0,100)}`);
-      setChip(a.id, 'error');
-      const fullMsg = lastErr;
-      const area2 = document.getElementById('panel-log');
-      const d2 = document.createElement('div');
-      d2.className='log-line error';
-      d2.style.cursor='pointer';
-      d2.style.textDecoration='underline dotted';
-      d2.title='클릭하면 오류 상세 보기';
-      const ts2=new Date();
-      const t2=`${String(ts2.getHours()).padStart(2,'0')}:${String(ts2.getMinutes()).padStart(2,'0')}:${String(ts2.getSeconds()).padStart(2,'0')}`;
-      d2.innerHTML=`<span class="log-time">${t2}</span>✗ [${a.name}] ${errInfo.type} <span style="font-size:10px;opacity:.6;">[클릭: 상세보기]</span>`;
-      d2.onclick = ()=>showErrorModal(a.name, fullMsg);
-      area2.appendChild(d2);
-      area2.scrollTop=area2.scrollHeight;
+    let agentDone = false;
+    while(!agentDone){
+      try{
+        const r = await callAgent(a, task);
+        results[a.id] = r;
+        fillCard(a, r);
+        setChip(a.id, 'done');
+        addLog(`✓ [${a.name}] 완료`, 'done');
+        agentDone = true;
+      }catch(e){
+        const lastErr = e.message || String(e);
+        const errInfo = classifyError(lastErr);
+
+        // 실패 시 사용자에게 재시도 여부 묻기
+        const userChoice = await askRetry(a.name, errInfo.type, lastErr);
+
+        if(userChoice === 'retry'){
+          // 재시도 선택 → 60초 대기 후 재호출
+          addLog(`⏳ [${a.name}] 1분 후 재시도...`, 'info');
+          for(let i=60; i>0; i--){
+            await new Promise(r=>setTimeout(r,1000));
+          }
+          addLog(`⟳ [${a.name}] 재시도 중...`, 'start');
+        } else {
+          // 건너뛰기 선택 → 실패 기록하고 루프 탈출
+          results[a.id] = `[건너뜀 — ${errInfo.type}]`;
+          fillCard(a, `[건너뜀 — ${errInfo.type}]\n${lastErr.slice(0,100)}`);
+          setChip(a.id, 'error');
+          const fullMsg = lastErr;
+          const area2 = document.getElementById('panel-log');
+          const d2 = document.createElement('div');
+          d2.className='log-line error';
+          d2.style.cursor='pointer';
+          d2.style.textDecoration='underline dotted';
+          d2.title='클릭하면 오류 상세 보기';
+          const ts2=new Date();
+          const t2=`${String(ts2.getHours()).padStart(2,'0')}:${String(ts2.getMinutes()).padStart(2,'0')}:${String(ts2.getSeconds()).padStart(2,'0')}`;
+          d2.innerHTML=`<span class="log-time">${t2}</span>✗ [${a.name}] 건너뜀 — ${errInfo.type} <span style="font-size:10px;opacity:.6;">[클릭: 상세보기]</span>`;
+          d2.onclick = ()=>showErrorModal(a.name, fullMsg);
+          area2.appendChild(d2);
+          area2.scrollTop=area2.scrollHeight;
+          agentDone = true;
+        }
+      }
     }
 
     done++;
     document.getElementById('stDone').textContent = `${done}/${agents.length}`;
     document.getElementById('stCalls').textContent = `${calls}회`;
 
-    // 성공/실패 무관하게 30초 대기 — 절대로 30초 안에 다음 호출 없음
+    // 성공/건너뛰기 무관하게 40초 대기
     if(done < mainAgents.length){
       const remaining = mainAgents.length - done;
-      addLog(`⏸ 다음 에이전트까지 30초 대기... (남은 에이전트: ${remaining}명)`, 'info');
-      for(let i=30; i>0; i--){
+      addLog(`⏸ 다음 에이전트까지 40초 대기... (남은 에이전트: ${remaining}명)`, 'info');
+      for(let i=40; i>0; i--){
         if(!paused) await new Promise(r=>setTimeout(r,1000));
-        else await new Promise(r=>setTimeout(r,500));
+        else { i++; await new Promise(r=>setTimeout(r,500)); }
       }
     }
   }
@@ -836,6 +854,53 @@ function classifyError(msg){
     return { type: '설정 오류', wait: 0, retry: false };
   return { type: '알 수 없는 오류', wait: 10000, retry: true };
 }
+
+// 실패 시 사용자에게 재시도 여부 묻는 함수
+function askRetry(agentName, errType, fullErr){
+  return new Promise((resolve)=>{
+    const area = document.getElementById('panel-log');
+
+    // 구분선
+    const sep = document.createElement('div');
+    sep.style.cssText = 'border-top:1px solid var(--warn);margin:6px 0;';
+    area.appendChild(sep);
+
+    // 질문 줄
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;flex-wrap:wrap;';
+
+    const msg = document.createElement('span');
+    msg.style.cssText = 'font-size:12px;color:var(--warn);flex:1;min-width:200px;';
+    msg.textContent = `⚠️ [${agentName}] ${errType} — 어떻게 할까요?`;
+
+    const btnRetry = document.createElement('button');
+    btnRetry.textContent = '↻ 1분 후 재시도';
+    btnRetry.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;';
+
+    const btnSkip = document.createElement('button');
+    btnSkip.textContent = '→ 건너뛰기 (30초 후 다음)';
+    btnSkip.style.cssText = 'background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;';
+
+    btnRetry.onclick = ()=>{
+      row.remove(); sep.remove();
+      addLog(`↻ [${agentName}] 재시도 선택됨`, 'info');
+      resolve('retry');
+    };
+    btnSkip.onclick = async ()=>{
+      row.remove(); sep.remove();
+      addLog(`→ [${agentName}] 건너뛰기 선택 — 30초 대기 후 다음 에이전트`, 'info');
+      for(let i=30; i>0; i--){ await new Promise(r=>setTimeout(r,1000)); }
+      resolve('skip');
+    };
+
+    row.appendChild(msg);
+    row.appendChild(btnRetry);
+    row.appendChild(btnSkip);
+    area.appendChild(row);
+    area.scrollTop = area.scrollHeight;
+  });
+}
+
 
 function mkCard(a){
   const p = document.getElementById('panel-results');
